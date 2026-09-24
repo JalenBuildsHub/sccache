@@ -568,6 +568,17 @@ where
     )
 }
 
+fn should_share_jobserver_for_fallback(
+    response: &CompileResponse,
+    cmdline: &[OsString],
+) -> bool {
+    matches!(response, CompileResponse::UnhandledCompile)
+        && cmdline.iter().any(|arg| {
+            arg.to_str()
+                .is_some_and(|arg| arg == "-flto" || arg.starts_with("-flto="))
+        })
+}
+
 /// Dispatch the outcome of a compile, whether received from the daemon over IPC
 /// or produced by a local `SccacheService` in client-side mode.
 #[allow(clippy::too_many_arguments)]
@@ -585,6 +596,8 @@ fn handle_compile_result<T>(
 where
     T: CommandCreatorSync,
 {
+    let share_jobserver = should_share_jobserver_for_fallback(&response, &cmdline);
+
     match response {
         CompileResponse::CompileStarted => {
             if let Some(finished) = finished {
@@ -603,6 +616,9 @@ where
 
     let mut cmd = creator.new_command_sync(exe);
     cmd.args(&cmdline).current_dir(cwd);
+    if share_jobserver {
+        cmd.share_jobserver();
+    }
     if log_enabled!(Trace) {
         trace!("running command: {:?}", cmd);
     }
@@ -997,6 +1013,38 @@ mod test {
         fn try_clone(&self) -> io::Result<Box<dyn Connection>> {
             Ok(Box::new(DisconnectedConnection))
         }
+    }
+
+    #[test]
+    fn test_lto_unhandled_compile_shares_jobserver() {
+        assert!(should_share_jobserver_for_fallback(
+            &CompileResponse::UnhandledCompile,
+            &[OsString::from("-flto")]
+        ));
+        assert!(should_share_jobserver_for_fallback(
+            &CompileResponse::UnhandledCompile,
+            &[OsString::from("-flto=auto")]
+        ));
+        assert!(should_share_jobserver_for_fallback(
+            &CompileResponse::UnhandledCompile,
+            &[OsString::from("-flto=jobserver")]
+        ));
+        assert!(should_share_jobserver_for_fallback(
+            &CompileResponse::UnhandledCompile,
+            &[OsString::from("-flto=8")]
+        ));
+        assert!(!should_share_jobserver_for_fallback(
+            &CompileResponse::UnhandledCompile,
+            &[OsString::from("-fno-lto")]
+        ));
+        assert!(!should_share_jobserver_for_fallback(
+            &CompileResponse::UnhandledCompile,
+            &[OsString::from("-O2")]
+        ));
+        assert!(!should_share_jobserver_for_fallback(
+            &CompileResponse::CompileStarted,
+            &[OsString::from("-flto")]
+        ));
     }
 
     /// A mid-compile server disconnect: the server sends CompileStarted then drops the
