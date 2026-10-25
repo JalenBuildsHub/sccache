@@ -56,7 +56,7 @@ jobs:
           ls ../../target/integration-coverage/reports/lcov.info -l
 
       - name: Upload coverage results (to Codecov.io)
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         with:
           files: target/integration-coverage/reports/lcov.info
           name: codecov-umbrella-integration-${{ matrix.type }}
@@ -123,7 +123,7 @@ jobs:
       SCCACHE_ERROR_LOG: "${{ github.workspace }}\\server_log.txt"
 
     steps:
-      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
       - name: Clone repository
         uses: actions/checkout@v5
