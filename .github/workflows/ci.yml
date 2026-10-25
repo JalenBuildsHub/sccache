@@ -130,7 +130,7 @@ jobs:
       CARGO_PROFILE_DEV_DEBUG: '0' # save disk space
     steps:
       - if: ${{ contains(matrix.os, 'windows') }}
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
       - name: Clone repository
         uses: actions/checkout@v5
@@ -234,7 +234,7 @@ jobs:
 
       - name: Upload coverage results (to Codecov.io)
         if: ${{ ! matrix.no_coverage }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         with:
           files: ${{ steps.coverage.outputs.report }}
           ## flags: IntegrationTests, UnitTests, ${{ steps.vars.outputs.CODECOV_FLAGS }}
@@ -393,7 +393,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Prepare, build and test
-        uses: vmactions/freebsd-vm@v1
+        uses: vmactions/freebsd-vm@c46abacb49f09938ca4e1702d15d836285d694cc # v1 @ 2026-10-03
         with:
           mem: 8192
           usesh: true
