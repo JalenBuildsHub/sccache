@@ -17,7 +17,7 @@ jobs:
         fetch-depth: 0  # needed for version determination
 
     - name: Build and publish the snap
-      uses: canonical/actions/build-snap@release
+      uses: canonical/actions/build-snap@369aa83db4b62bdf1cb4240f651f11f0eb9fac11 # release @ 2026-08-26
       with:
         snapcraft-channel: edge
         review-opts: --allow-classic
